@@ -1,0 +1,9 @@
+.swarm-data/
+__pycache__/
+*.pyc
+.venv/
+.env
+verification-output/
+build/
+dist/
+*.egg-info/

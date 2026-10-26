@@ -1,0 +1,19 @@
+# RATBAG — systemd USER unit. Loopback only; put SWARM_ACCESS_TOKEN in the
+# environment file before binding beyond 127.0.0.1.
+[Unit]
+Description=RATBAG local coding workbench
+After=network-online.target
+
+[Service]
+Type=exec
+WorkingDirectory=%h/ratbag
+Environment=SWARM_DATA_DIR=%h/.local/state/ratbag
+EnvironmentFile=-%h/.config/ratbag/env
+ExecStart=/usr/bin/env ratbag --host 127.0.0.1 --port 8765
+UMask=0077
+NoNewPrivileges=yes
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
