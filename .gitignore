@@ -1,9 +1,17 @@
 .swarm-data/
 __pycache__/
 *.pyc
+*.pyo
 .venv/
+venv/
 .env
+.env.*
+node_modules/
+*.log
 verification-output/
 build/
 dist/
 *.egg-info/
+.idea/
+.vscode/
+.DS_Store
