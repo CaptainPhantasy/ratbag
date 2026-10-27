@@ -19,6 +19,8 @@ from .providers import ProviderRegistry, LLMClient, ProviderError, Configuration
 from .engine import SwarmEngine
 from .projects import ProjectCatalog
 from .workbench import WorkbenchSetup, CORE_ROLES
+from .interview import QUESTIONS, Answers, Interview
+from .sdlc import SdlcClient, SdlcError
 from . import gitops
 
 TERMINAL = {"ready_for_review", "failed", "needs_input", "cancelled", "interrupted"}
@@ -463,6 +465,34 @@ def make_handler(app: Application):
                     if extra in {"pause", "resume", "cancel"} and method == "POST":
                         self.read_json()
                         return self.json_response(200, {"run": app.control(run_id, extra)})
+                if path == "/api/sdlc/status" and method == "GET":
+                    return self.json_response(200, SdlcClient().status())
+                if path == "/api/interview/questions" and method == "GET":
+                    return self.json_response(
+                        200, {"questions": [{"key": key, "question": text} for key, text in QUESTIONS]}
+                    )
+                if path == "/api/interview/plan" and method == "POST":
+                    interview = Interview(Answers.from_mapping(self.read_json()))
+                    try:
+                        plan = interview.plan_request()
+                    except SdlcError as exc:
+                        return self.json_response(502, {"error": str(exc)})
+                    finally:
+                        interview.client.close()
+                    return self.json_response(200, {"session_id": interview.session_id, "plan": plan})
+                if path == "/api/interview/run" and method == "POST":
+                    steps: list[dict] = []
+                    interview = Interview(
+                        Answers.from_mapping(self.read_json()),
+                        note=lambda step: steps.append(step.__dict__),
+                    )
+                    try:
+                        result = interview.run()
+                    except SdlcError as exc:
+                        return self.json_response(502, {"error": str(exc), "steps": steps})
+                    finally:
+                        interview.client.close()
+                    return self.json_response(200, {"result": result, "steps": steps})
                 if method not in {"GET", "HEAD"} or path.startswith("/api/"):
                     return self.json_response(404, {"error": "This action was not found."})
                 if path == "/wireframe":

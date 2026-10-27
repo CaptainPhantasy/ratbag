@@ -5,7 +5,48 @@ import os
 from pathlib import Path
 import sys
 
+from .interview import QUESTIONS, Answers, Interview
+from .sdlc import SdlcClient, SdlcError
 from .server import Application, create_server
+
+
+def _ask(answers: dict[str, str]) -> Answers:
+    print("The interview. Plain answers, no jargon.\n", flush=True)
+    for key, question in QUESTIONS:
+        current = answers.get(key, "")
+        suffix = f" [{current}]" if current else ""
+        try:
+            reply = input(f"{question}{suffix}\n> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            raise SystemExit("Stopped before anything was built.")
+        answers[key] = reply or current
+    return Answers.from_mapping(answers)
+
+
+def _interview(args) -> int:
+    if args.sdlc_status:
+        status = SdlcClient().status()
+        print(json.dumps(status, indent=2))
+        return 0 if status.get("reachable") else 2
+
+    if args.answers:
+        answers = Answers.from_mapping(json.loads(Path(args.answers).read_text(encoding="utf-8")))
+    else:
+        answers = _ask({})
+
+    def note(step):
+        mark = {"ok": "ok  ", "failed": "FAIL", "skipped": "skip"}.get(step.status, step.status)
+        print(f"[{mark}] {step.name}: {step.detail}", flush=True)
+
+    interview = Interview(answers, note=note)
+    try:
+        result = interview.run()
+    except SdlcError as exc:
+        print(f"\nStopped: {exc}", file=sys.stderr)
+        return 1
+    print(json.dumps(result, indent=2))
+    return 0
 
 
 def main():
@@ -15,7 +56,12 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=Path(os.getenv("SWARM_DATA_DIR", ".swarm-data")))
     parser.add_argument("--base-path", default=os.getenv("SWARM_BASE_PATH", ""), help="URL prefix when served through the server, for example /swarm.")
     parser.add_argument("--session-keys-stdin", action="store_true", help="Read role keys from one JSON line on hidden standard input.")
+    parser.add_argument("--interview", action="store_true", help="Interview the user, then drive the SDLC factory from the answers.")
+    parser.add_argument("--answers", type=Path, help="Read interview answers from a JSON file instead of asking.")
+    parser.add_argument("--sdlc-status", action="store_true", help="Report whether the SDLC factory can be reached, then exit.")
     args = parser.parse_args()
+    if args.interview or args.answers or args.sdlc_status:
+        raise SystemExit(_interview(args))
     project = Path(__file__).resolve().parent.parent
     hosts = {"localhost", "127.0.0.1", "::1"} | {h.strip() for h in os.getenv("SWARM_ALLOWED_HOSTS", "").split(",") if h.strip()}
     app = Application(args.data_dir, project / "web", os.getenv("SWARM_ACCESS_TOKEN", ""), hosts,

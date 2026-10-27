@@ -1,10 +1,37 @@
 # RATBAG
 
-**A local, patch-only coding workbench. Plan, build, test, review — then decide.**
+**The front door: a plain-language interview that ends with a checked, versioned artifact.**
 
-RATBAG turns one coding task into a plan, a patch, test evidence, and two
-independent reviews. It never changes your active checkout, never pushes, and
-never merges. You get a downloadable patch and the evidence behind it.
+RATBAG asks what should exist, what must stay true, where it lives, which layout
+to start from, and how to prove it works. It hands those answers to the SDLC
+factory, which holds the order of the work and the receipts. It publishes the
+result on a `preview` branch for review, and it never merges or calls anything
+finished without evidence.
+
+It is also still the patch workbench it started as — plan, build, test, two
+reviews, one downloadable patch — for work inside an existing repository.
+
+## How the pieces fit
+
+    RATBAG            ask the person, then drive the factory
+      │
+    SDLC factory      plan, approve, check, manifest, validate, package, hand off
+      │
+    preview branch    one commit, artifact, evidence and manifests
+      │
+    FatChin           review, comment, fix, approve — the merge gate stays human
+      │
+    hosting           deploy and share                       ← the third tool, not built yet
+
+All three tools use the same factory, for the same reason: the sequence and the
+receipts should not be reinvented once per tool, and a standard that changes per
+tool is not a standard.
+
+They are front-end layers, and they exist for one reason: to keep the thirteen
+promises — say what happened, name what you can do next, prove what you claim,
+never decide for the person, never lie about what they approved. RATBAG asks and
+proves; FatChin reviews and refuses to merge; hosting will publish without
+pretending it is finished.
 
 ## Why it exists
 
@@ -106,7 +133,8 @@ fixtures, and makes no paid provider calls. It currently runs **101 tests**.
 
 See [SECURITY.md](SECURITY.md). The important boundaries:
 
-- No merge, push, or publish path.
+- No merge path. The interview publishes one branch, `preview`, and never the
+  default branch; nothing is force-pushed.
 - An access token is required beyond loopback.
 - Test code is sandboxed; missing bubblewrap stops the run.
 - Model keys are never written to the setup file, database, logs, or browser
@@ -114,8 +142,11 @@ See [SECURITY.md](SECURITY.md). The important boundaries:
 
 ## Limitations
 
-- GitHub and GitLab integration are not included; the patch and evidence bundle
-  are the deliverable.
+- Review and fixing are FatChin's job, not this tool's. RATBAG stops at the
+  preview branch.
+- Hosting is not built. The third tool in the chain does not exist yet.
+- Pushing needs a git remote you can already authenticate to; RATBAG holds no
+  credentials of its own.
 - One run executes at a time. State is SQLite on one machine, not a
   multi-tenant service.
 - The access token is a shared operator secret, not per-user identity.

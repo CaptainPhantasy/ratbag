@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RATBAG — the interview</title>
+<style>
+  :root { color-scheme: dark; --ink:#eef1f6; --dim:#9aa3b2; --bg:#0f1115; --card:#171a21; --line:#2a2f3a; --ok:#58c07a; --bad:#e06c6c; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--ink); line-height:1.55; }
+  main { max-width: 52rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  h1 { margin:0 0 .25rem; font-size:1.6rem; }
+  .lede { color:var(--dim); margin-top:0; }
+  form { display:grid; gap:1rem; margin:2rem 0; }
+  label { display:block; font-weight:600; margin-bottom:.35rem; }
+  .hint { color:var(--dim); font-weight:400; font-size:.9rem; }
+  input, textarea, select { width:100%; padding:.6rem .7rem; background:var(--card); color:var(--ink);
+    border:1px solid var(--line); border-radius:.5rem; font:inherit; }
+  textarea { min-height:4.5rem; resize:vertical; }
+  .row { display:flex; gap:.6rem; flex-wrap:wrap; }
+  button { padding:.6rem 1rem; border-radius:.5rem; border:1px solid var(--line); background:#222836;
+    color:var(--ink); font:inherit; cursor:pointer; }
+  button.primary { background:#3a6df0; border-color:#3a6df0; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  section { border:1px solid var(--line); border-radius:.75rem; padding:1rem 1.1rem; margin-top:1.25rem; background:var(--card); }
+  section h2 { margin:0 0 .5rem; font-size:1rem; }
+  ol.steps { list-style:none; padding:0; margin:0; display:grid; gap:.35rem; }
+  ol.steps li { display:grid; grid-template-columns:4.5rem 1fr; gap:.6rem; font-size:.95rem; }
+  .mark { font-variant:all-small-caps; letter-spacing:.03em; }
+  .ok { color:var(--ok); } .failed { color:var(--bad); } .skipped { color:var(--dim); }
+  pre { white-space:pre-wrap; word-break:break-word; background:#0b0d11; border:1px solid var(--line);
+    border-radius:.5rem; padding:.75rem; max-height:22rem; overflow:auto; font-size:.85rem; }
+  .error { border-color:var(--bad); }
+  a { color:#8fb4ff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The interview</h1>
+  <p class="lede">Answer in plain words. RATBAG asks the factory to plan it, check it, package it and hand it over — and refuses to call anything finished without evidence.</p>
+
+  <form id="interview">
+    <div>
+      <label for="goal">What should exist? <span class="hint">Say it the way you would say it to a person.</span></label>
+      <textarea id="goal" name="goal" required></textarea>
+    </div>
+    <div>
+      <label for="context">What must stay true? <span class="hint">Names, dates, prices, people. Optional.</span></label>
+      <textarea id="context" name="context"></textarea>
+    </div>
+    <div>
+      <label for="constraints">Anything it must or must not do? <span class="hint">Optional.</span></label>
+      <textarea id="constraints" name="constraints"></textarea>
+    </div>
+    <div>
+      <label for="workspace">Which folder should the work live in?</label>
+      <input id="workspace" name="workspace" required placeholder="/home/you/my-artifact">
+    </div>
+    <div>
+      <label for="stack">Starting layout</label>
+      <select id="stack" name="stack">
+        <option value="none">none — just the files</option>
+        <option value="nextjs-fastapi">Next.js + FastAPI</option>
+        <option value="flask-sqlalchemy">Flask + SQLAlchemy</option>
+        <option value="express-prisma">Express + Prisma</option>
+      </select>
+    </div>
+    <div>
+      <label for="check">How do we know it works? <span class="hint">A command that exits 0 when it is right.</span></label>
+      <input id="check" name="check" required placeholder="python3 check.py">
+    </div>
+    <div>
+      <label for="builder">Who writes it? <span class="hint">Optional command. Leave blank if the files already exist.</span></label>
+      <input id="builder" name="builder" placeholder="python3 make.py">
+    </div>
+    <div>
+      <label for="risks">Which scanner may stay unrun? <span class="hint">Name it, or leave blank.</span></label>
+      <input id="risks" name="risks" placeholder="security">
+    </div>
+    <div>
+      <label for="remote">Where should the preview branch go? <span class="hint">A git remote. Leave blank to commit locally only.</span></label>
+      <input id="remote" name="remote" placeholder="git@github.com:you/project.git">
+    </div>
+    <div class="row">
+      <button type="button" id="plan">Plan it first</button>
+      <button type="submit" class="primary" id="run">Run the whole thing</button>
+    </div>
+  </form>
+
+  <section id="status-section" hidden>
+    <h2>Status</h2>
+    <div id="status"></div>
+  </section>
+
+  <section id="plan-section" hidden>
+    <h2>The plan</h2>
+    <div id="plan-summary"></div>
+    <pre id="plan-detail"></pre>
+  </section>
+
+  <section id="steps-section" hidden>
+    <h2>What happened</h2>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section id="result-section" hidden>
+    <h2>The result</h2>
+    <pre id="result"></pre>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const fields = ["goal","context","constraints","workspace","stack","check","builder","risks","remote"];
+
+function answers() {
+  const out = {};
+  for (const key of fields) out[key] = ($(key).value || "").trim();
+  return out;
+}
+function say(text, isError) {
+  $("status-section").hidden = false;
+  $("status").textContent = text;
+  $("status-section").classList.toggle("error", Boolean(isError));
+}
+function renderSteps(steps) {
+  const list = $("steps");
+  list.replaceChildren();
+  for (const step of steps || []) {
+    const li = document.createElement("li");
+    const mark = document.createElement("span");
+    mark.className = "mark " + (step.status || "");
+    mark.textContent = step.status || "";
+    const body = document.createElement("span");
+    body.textContent = `${step.name}: ${step.detail || ""}`;
+    li.append(mark, body);
+    list.append(li);
+  }
+  $("steps-section").hidden = !(steps && steps.length);
+}
+async function post(path, payload) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({ error: "the server did not answer with JSON" }));
+  if (!response.ok) throw new Error(data.error || `request failed (${response.status})`);
+  return data;
+}
+
+$("plan").addEventListener("click", async () => {
+  $("plan").disabled = true;
+  say("Asking the factory for a plan…");
+  try {
+    const data = await post("/api/interview/plan", answers());
+    const packet = data.plan.approval_packet || {};
+    $("plan-section").hidden = false;
+    $("plan-summary").textContent = packet.plain_language_summary || "No summary came back.";
+    $("plan-detail").textContent = data.plan.specification_preview || "";
+    say(`Planned. Session ${data.session_id}.`);
+  } catch (error) {
+    say(error.message, true);
+  } finally {
+    $("plan").disabled = false;
+  }
+});
+
+$("interview").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("run").disabled = true;
+  $("result-section").hidden = true;
+  say("Running: plan, approve, build, check, manifest, validate, package, deploy, verify, hand over…");
+  try {
+    const data = await post("/api/interview/run", answers());
+    renderSteps(data.steps);
+    $("result-section").hidden = false;
+    $("result").textContent = JSON.stringify({
+      status: data.result.status,
+      session_id: data.result.session_id,
+      artifact: data.result.artifact?.artifact_path,
+      deployed: data.result.deployment?.deployed_url,
+      deliverable: data.result.deliverable?.manifest,
+    }, null, 2);
+    say("Delivered. The manifest lists what was checked.");
+  } catch (error) {
+    renderSteps(error.steps || []);
+    say(error.message, true);
+  } finally {
+    $("run").disabled = false;
+  }
+});
+</script>
+</body>
+</html>
