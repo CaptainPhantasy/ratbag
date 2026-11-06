@@ -30,19 +30,19 @@ dialog{color:var(--text);background:var(--surface);border:1px solid var(--input-
 @media(forced-colors:active){.button,.card,.artifact-button,.phone-tabs button,.account-entry,.routing-assignment{border:1px solid CanvasText}.button.primary{background:Highlight;color:HighlightText}.status-dot,.connection-dot{background:CanvasText}.icon{forced-color-adjust:auto}}
 
 /* RATBAG keeps its original color. The surrounding workshop follows the theme. */
-:root{--mascot-halo:#394556;--mascot-ground:#080b10;--ratbag-orange:#ff8a35}
-:root[data-theme=light]{--mascot-halo:#e5e8ed;--mascot-ground:#d3d8e0;--ratbag-orange:#ba4b09}
-:root[data-theme=contrast]{--mascot-halo:#373737;--mascot-ground:#000;--ratbag-orange:#ffb06e}
+:root{--ratbag-orange:#ff8a35}
+:root[data-theme=light]{--ratbag-orange:#ba4b09}
+:root[data-theme=contrast]{--ratbag-orange:#ffb06e}
 .ratbag-wordmark{font-size:23px;font-weight:850;letter-spacing:-.045em;gap:10px}
 .ratbag-wordmark:before{content:'';width:4px;height:34px;border-radius:2px;background:var(--ratbag-orange);flex:none}
 .ratbag-wordmark small{font-size:8px;letter-spacing:.2em;font-weight:550}
 .workspace-content{min-width:0}
 .brand-rail{display:none;min-width:0}
-.ratbag-brand{display:flex;flex-direction:column;align-items:center;min-width:0;padding:12px 12px 23px;background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.ratbag-brand{display:flex;flex-direction:column;align-items:center;min-width:0;padding:12px 12px 23px;background:transparent;border:0;border-radius:0;box-shadow:none}
 .ratbag-art{position:relative;isolation:isolate;aspect-ratio:1;flex:none;width:100%;max-width:340px;margin:0 auto}
-.ratbag-art:before{content:'';position:absolute;inset:8% 1% 2%;border-radius:50%;background:radial-gradient(ellipse,var(--mascot-halo),transparent 72%);z-index:-1}
-.ratbag-art:after{content:'';position:absolute;left:15%;right:12%;bottom:1%;height:6%;border-radius:50%;background:radial-gradient(ellipse,var(--mascot-ground),transparent 72%);z-index:-1}
-.ratbag-art img{display:block;width:100%;height:100%;object-fit:contain;position:relative}
+
+
+.ratbag-art img,.ratbag-welcome img{display:block;width:100%;height:100%;object-fit:contain;position:relative;background:transparent;border:0;box-shadow:none}
 .ratbag-identity{min-width:0;text-align:center;padding:8px 5px 0}
 .ratbag-maker{display:block;color:var(--faint);font-size:8px;font-weight:650;letter-spacing:.2em;line-height:1.6}
 .ratbag-identity h2{font-size:35px;line-height:1.05;letter-spacing:-.045em;font-weight:850;color:var(--text);margin:7px 0 9px}
@@ -95,7 +95,7 @@ dialog{color:var(--text);background:var(--surface);border:1px solid var(--input-
 [data-layout=phone] .ratbag-brand[data-presentation=work] h2{font-size:30px;margin-top:7px}
 [data-layout=phone] .ratbag-brand[data-presentation=work] .ratbag-tagline{font-size:11px}
 [data-layout=phone] .ratbag-brand[data-presentation=work] .ratbag-signature{font-size:9px}
-[data-layout=phone] .more-card>.ratbag-brand{padding:0 0 20px;margin-bottom:22px;border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent}
+[data-layout=phone] .more-card>.ratbag-brand{padding:0 0 20px;margin-bottom:22px;border:0;border-top:0;border-left:0;border-right:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;box-shadow:none}
 [data-layout=phone] .ratbag-brand[data-presentation=menu] .ratbag-art{max-width:310px}
 [data-layout=phone] .ratbag-brand[data-presentation=menu] .ratbag-identity h2{font-size:36px}
 [data-layout=phone][data-phone-view=more] .task-heading,[data-layout=phone][data-phone-view=more] #setup-card,[data-layout=phone][data-phone-view=more] #next-action{display:none}
@@ -113,7 +113,6 @@ dialog{color:var(--text);background:var(--surface);border:1px solid var(--input-
 .ratbag-welcome .ratbag-art{width:240px}
 .ratbag-welcome h3{font-size:26px;line-height:1.3;letter-spacing:-.025em;margin:11px 0 13px}
 .ratbag-welcome .onboarding-copy{font-size:12px;line-height:1.8;margin:0}
-:root[data-theme=contrast] .ratbag-brand{border-color:var(--input-border)}
 :root[data-theme=contrast] .ratbag-maker,:root[data-theme=contrast] .ratbag-signature{color:var(--text)}
 
 /* Keep manually selected profiles usable when the window is made smaller. */
@@ -150,8 +149,7 @@ dialog{color:var(--text);background:var(--surface);border:1px solid var(--input-
   .ratbag-welcome h3{font-size:21px}
 }
 @media(forced-colors:active){
-  .ratbag-brand{border:1px solid CanvasText}
-  .ratbag-art:before,.ratbag-art:after{display:none}
+  .ratbag-brand{background:transparent;border:0;border-radius:0;box-shadow:none}
   .ratbag-wordmark:before,.ratbag-signature:before{background:CanvasText}
 }
 
