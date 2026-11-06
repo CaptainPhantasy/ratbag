@@ -33,3 +33,9 @@ ratbag = "swarm.__main__:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["swarm*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+norecursedirs = [".git", "web", "docs", "plans", "deploy", "swarm", "*.egg-info"]
