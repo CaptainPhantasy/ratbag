@@ -152,9 +152,30 @@ See [SECURITY.md](SECURITY.md). The important boundaries:
 - The access token is a shared operator secret, not per-user identity.
 - The default model ids and endpoints are examples, not a recommendation.
 
-## License
+## Why We Use the AGPL-3.0 License
 
-AGPL-3.0-or-later. See [LICENSE](LICENSE).
+At Floyd's Labs / Legacy AI, we built RATBAG as a plain-language front door for software
+work: an interview that ends in a checked, versioned artifact, and a patch workbench
+where every change is planned, built, tested in a sandbox and reviewed twice before you
+download it. It gives developers running lean on time, API credits or local models solid
+engineering guardrails out of the box instead of trusting an agent with their branch.
+
+We release RATBAG under the GNU Affero General Public License v3 (`AGPL-3.0-or-later`)
+for three plain reasons:
+
+- **Open Exchange:** We believe in putting real foundational building blocks into the
+  hands of independent developers, self-hosters and hobbyists for unhindered personal
+  and local use.
+- **The Give-Back Rule:** If you take RATBAG, modify it and expose it to the public over
+  a network, such as a cloud app or hosted API service, the AGPL-3.0 requires you to
+  make your modified source code available under these same open rules.
+- **Passive Protection:** This license keeps our self-funded, independent lab work a
+  shared community asset. It stops proprietary platforms from repackaging our work into
+  closed-source commercial services without contributing back.
+
+If you are building tools for yourself, tinkering locally, or playing by the rules of
+open-source reciprocity, this is yours to use. See [`LICENSE`](LICENSE) for the full
+terms.
 
 ---
 
