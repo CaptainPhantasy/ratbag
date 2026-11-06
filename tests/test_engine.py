@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import unittest
 from unittest import mock
 
-from swarm.engine import SwarmEngine, failure_signature, parse_review, test_evidence
+from swarm.engine import SwarmEngine, failure_signature, parse_review, test_evidence as evidence_report
 from swarm.store import RunStore
 from swarm import gitops, sandbox
 from test_gitops import fixture_repo, value_patch
@@ -342,10 +342,10 @@ class EvidenceTests(unittest.TestCase):
         self.assertTrue(parse_review(APPROVED)["approved"])
 
     def test_output_alone_cannot_override_failing_exit(self):
-        self.assertFalse(test_evidence("5 passed", 1)["passed"])
-        self.assertFalse(test_evidence("all good", 0)["passed"])
-        self.assertFalse(test_evidence("Ran 0 tests", 0)["passed"])
-        self.assertTrue(test_evidence("Ran 2 tests in 0.002s\nOK", 0)["passed"])
+        self.assertFalse(evidence_report("5 passed", 1)["passed"])
+        self.assertFalse(evidence_report("all good", 0)["passed"])
+        self.assertFalse(evidence_report("Ran 0 tests", 0)["passed"])
+        self.assertTrue(evidence_report("Ran 2 tests in 0.002s\nOK", 0)["passed"])
 
     def test_failure_signature_preserves_distinct_assertions(self):
         self.assertNotEqual(failure_signature("tests", ["pytest"], 1, "AssertionError: 1 != 2"), failure_signature("tests", ["pytest"], 1, "AssertionError: 3 != 4"))
@@ -353,7 +353,7 @@ class EvidenceTests(unittest.TestCase):
 
     def test_empty_secondary_suite_does_not_erase_actual_executed_tests(self):
         output = "test result: ok. 4 passed; 0 failed\nDoc-tests\nrunning 0 tests\ntest result: ok. 0 passed; 0 failed"
-        result = test_evidence(output, 0)
+        result = evidence_report(output, 0)
         self.assertTrue(result["passed"])
         self.assertEqual(result["observed_test_count"], 4)
         self.assertIn("at least 4", result["message"])

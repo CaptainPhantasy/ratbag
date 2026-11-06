@@ -514,7 +514,14 @@ def make_handler(app: Application):
                             return self.json_response(404, {"error": "Page was not found."})
                 if not target.is_file():
                     return self.json_response(404, {"error": "Page was not found."})
-                return self.send_data(200, target.read_bytes(), mimetypes.guess_type(target.name)[0] or "application/octet-stream")
+                ctype = mimetypes.guess_type(target.name)[0]
+                if target.suffix.lower() == ".webmanifest":
+                    ctype = "application/manifest+json"
+                elif target.suffix.lower() == ".ico":
+                    ctype = "image/x-icon"
+                elif target.suffix.lower() == ".svg":
+                    ctype = "image/svg+xml"
+                return self.send_data(200, target.read_bytes(), ctype or "application/octet-stream")
             except (ValueError, json.JSONDecodeError, ConfigurationError, gitops.GitError) as exc:
                 self.json_response(400, {"error": app.redact(str(exc))[:1500]})
             except ProviderError as exc:

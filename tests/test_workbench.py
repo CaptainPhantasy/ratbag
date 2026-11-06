@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 
 from swarm import gitops
-from swarm.projects import ProjectCatalog, test_options
+from swarm.projects import ProjectCatalog, test_options as project_test_options
 from swarm.providers import ConfigurationError, ProviderRegistry, ZAI_CODING_BASE, model_catalog
 from swarm.server import Application, create_server
 from swarm.workbench import CORE_ROLES, WorkbenchSetup
@@ -70,15 +70,15 @@ class ProjectTests(unittest.TestCase):
         repo = self.projects / "python-example"
         committed_project(repo, {"pyproject.toml": "[project]\nname = 'fixture'\n",
                                  "tests/test_simple.py": "import unittest\n"})
-        self.assertEqual([item["command"] for item in test_options(repo)], ["python3 -m unittest discover -s tests -v"])
+        self.assertEqual([item["command"] for item in project_test_options(repo)], ["python3 -m unittest discover -s tests -v"])
         (repo / "pyproject.toml").write_text("[tool.pytest.ini_options]\ntestpaths = ['tests']\n")
-        self.assertEqual([item["command"] for item in test_options(repo)],
+        self.assertEqual([item["command"] for item in project_test_options(repo)],
                          ["python3 -m pytest -q", "python3 -m unittest discover -s tests -v"])
 
     def test_unrecognized_runner_is_not_offered_as_an_automatic_check(self):
         repo = self.projects / "go-example"
         committed_project(repo, {"go.mod": "module fixture.example/sample\n\ngo 1.22\n"})
-        self.assertEqual(test_options(repo), [])
+        self.assertEqual(project_test_options(repo), [])
 
     def test_sample_is_real_committed_and_does_not_overwrite_owner_edits(self):
         sample = self.catalog.create_sample()
